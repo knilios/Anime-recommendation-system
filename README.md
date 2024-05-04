@@ -22,5 +22,14 @@ python -m pip install
 python main.py
 ```
 
+## Links to documents
+Proposal - https://docs.google.com/document/d/1Qi0fGU4koof8QgauWVlN8KqHx2hm2YZaUMJ7Gj5Uqrs/edit?usp=sharing
+
+Uml diagram:
+
+![alt text](image-1.png)
+
+data source: https://www.kaggle.com/datasets/hernan4444/anime-recommendation-database-2020
+
 ## Requirements
 python version 3.11 or greater
