@@ -14,7 +14,7 @@ However, right now, it can only view the correlation between score and drop rate
 ```bash
 git clone https://github.com/knilios/Japanese-animated-show-recommendation-system.git
 cd Japanese-animated-show-recommendation-system
-python -m pip install
+python -m pip install -r requirements. txt
 ```
 
 ## How to run
