@@ -1,5 +1,5 @@
 import structure
 import tkinter as tk
 
-something = structure.LoginFrame()
-something.run()
+main_gui = structure.MenuFrame()
+main_gui.run()
