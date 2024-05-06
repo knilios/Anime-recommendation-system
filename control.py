@@ -40,6 +40,17 @@ class Control:
 
     def get_show_with_genre(self, genre: str):
         return self.__file.data[self.__file.data['Genres'].str.contains(genre)]
+    
+    def get_data_for_histogram_page(self, filters:list):
+        """
+        Get the data for the histogram
+        """
+        #TODO
+        pass
+
+    def get_the_show_for_each_histogram(self, bar_index:int, data:list, bins_num:int):
+        #TODO get the shows by sort(data)[num(data)*bar_index/bins_num: num(data)*bar_index+1/bins_num]
+        pass
 
 
 if __name__ == "__main__":

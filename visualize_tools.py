@@ -18,37 +18,125 @@ class Visualize(tk.Frame):
 
 
 class Histogram(Visualize):
-    #TODO Change this into a real histogram
-    def __init__(self, parent, data_x:list, data_y:list, title:str, bar_clicked, ylabel:str=None):
+    """Create a histogram"""
+    def __init__(self, parent) -> None:
+        """
+        Initiate a histogram.
+        :param parent: A parent that will hold this histogram frame.
+        """
         super().__init__(parent)
-        self.bar_clicked = bar_clicked
         self.parent = parent
+
+    def show(self, data:list, bin_num:int, title:str, bar_clicked, ylabel:str=None) -> None:
+        """
+        Create a histogram for the first time.
+        :param data: A list of data to put in the histogram.
+        :param bin_num: Number of bins in the histogram.
+        :param title: Title of the histogram.
+        :param bar_clicked: A function that it will called after the bar is clicked.
+        :param ylabel: A lebel in the y axis's label.
+        """
+        self.bar_clicked = bar_clicked
+        self.title = title
+        self.bar_clicked
+        self.ylabel = ylabel
+        self.bin_num = bin_num
+
+        # create a histogram
+        self.__create_hist(data, bin_num)
+        
+    def update(self, bin_num:int, data:list=None):
+        """
+        Update the already existed histogram.
+        :param bin_num: The number of the bins in the histogram.
+        :param data: A list of data that will be shown in the histogram. Left it blank 
+        to use the old one.
+        """
+        data_in_use = data
+        if data_in_use == None:
+            data_in_use = self.data
+        
+        # delete everything in the frame
+        for i in self.winfo_children():
+            i.destroy()
+
+        # create a new histogram
+        self.__create_hist(data_in_use, bin_num)
+
+    def __create_hist(self, data:list, bin_num:int):
+        """
+        Create a histogram.
+        :param data: A list containing all data to be displayed in the histogram.
+        :param bin_num: The number of bins in the histogram.
+        """
+        self.bin_num = bin_num
+        self.data = data
+
         #create a figure
         self.figure = Figure(figsize=(6, 4), dpi=100)
         self.figure_canvas = FigureCanvasTkAgg(self.figure, master=self)
+
         # NavigationToolbar2Tk(self.figure_canvas, self)
         axes = self.figure.add_subplot()
-        # create the barchart
-        axes.bar(data_x, data_y)
-        axes.set_title(title)
-        if ylabel != None:
-            axes.set_ylabel(ylabel)
 
-    def start(self) -> None:
+        # create the barchart
+        axes.hist(data, bins=bin_num)
+        axes.set_title(self.title)
+        if self.ylabel != None:
+            axes.set_ylabel(self.ylabel)
+
+        # show the histogram
         self.figure_canvas.mpl_connect('button_press_event', self.bar_clicked)
         self.figure_canvas.draw()
-        self.figure_canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+        self.figure_canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1) 
+
+    def onClick(self, callback_function):
+        """
+        This function returns another function which you can use it as a binding function
+        of the histogram on-click.
+        :param callback_function: a function that the binding function will call. It
+        will call something like this:
+        ```py
+        callback_function(bar_index, self:tk.Tk)
+        ```
+        bar_index is the integer of the histogram clicked.
+
+        :return: a callback function
+        """
+        def realOnclick(event, *args):
+            # Get the index of the clicked bar
+            if not isinstance(event.xdata, (int, float)):
+                return
+            bar_index = round(event.xdata) // round((max(self.data)-min(self.data) + 2) / self.bin_num)
+            callback_function(bar_index, self)
+            print(f"Bar {bar_index} clicked!")
+
+        return realOnclick
+                
 
 class BoxPlot(Visualize):
-    def __init__(self, parent, data_x:list, data_y:list, title:str, bar_clicked, ylabel:str=None):
+    """Generate a frame containing a box plot"""
+    def __init__(self, parent, data_x:list, data_y:list, title:str, bar_clicked, ylabel:str=None) -> None:
+        """
+        Intiate the box plot and the frame.
+        :param parent: The parent of this box plot frame.
+        :param data_x: The data in the x-axis.
+        :param data_y: The data in the y-axis.
+        :param title: The title of the box plot.
+        :param bar_clicked: The function that will be calling when a bar is clicked.
+        :param ylabel: The name of the y-axis/
+        """
         super().__init__(parent)
         self.bar_clicked = bar_clicked
         self.parent = parent
+
         #create a figure
         self.figure = Figure(figsize=(6, 4), dpi=100)
         self.figure_canvas = FigureCanvasTkAgg(self.figure, master=self)
+
         # NavigationToolbar2Tk(self.figure_canvas, self)
         self.axes = self.figure.add_subplot()
+
         # create the barchart
         self.axes.bar(data_x, data_y)
         self.axes.set_title(title)
@@ -66,16 +154,23 @@ class BoxPlot(Visualize):
     def update(self, data_x:list, data_y:list):
         """
         Update the data in the box plot.
-        :param data_x:  a list of 
+        :param data_x:  a list of data in the x-axis.
+        :param data_y: A list of data in the y-axis.
         """
         self.axes.bar(data_x, data_y)
+        for i in self.winfo_children():
+            i.destroy()
 
 
 class TreeView(Visualize):
     """
     Create a clickable and scrollable treeview.
     """
-    def __init__(self, parent, columns:tuple):
+    def __init__(self, parent:tk.Tk|tk.Frame, columns:tuple):
+        """
+        :param parent: The parent of this element.
+        :param columns: The tuple of each column name.
+        """
         super().__init__(parent)
         self.parent = parent
         self.tree = ttk.Treeview(self, columns=columns, show='headings')
@@ -96,17 +191,24 @@ class TreeView(Visualize):
         # Delete everything displaying at the moment
         for selected_item in self.tree.get_children():
             self.tree.delete(selected_item)
+
         # Fill the tree with new data
         for i in content:
             self.tree.insert('', tk.END, values=tuple(i))
 
     def bind(self, func) -> None:
-        """Bind each lines of the tree with a function"""
+        """
+        Bind each lines of the tree with a function
+        :param func: The function that will be called after a row is clicked.
+        """
         self.tree.bind('<<TreeviewSelect>>', func)
 
 class EntryTextView(Visualize):
     """A textview that can only display texts"""
-    def __init__(self, parent):
+    def __init__(self, parent:tk.Tk|tk.Frame):
+        """
+        :param parent: The parent of this element.
+        """
         super().__init__(parent)
         self.parent = parent
         self.entry = ScrolledText(self)
@@ -128,6 +230,9 @@ class EntryTextView(Visualize):
         
 class PieChart(Visualize):
     def __init__(self, parent:tk.Tk|tk.Frame):
+        """
+        :param parent: The parent of this element.
+        """
         super().__init__(parent)
     
     def display(self, keys:list, values:list) -> None:
@@ -147,18 +252,22 @@ class PieChart(Visualize):
 
 
 class ScatterChart(Visualize):
-    def __init__(self, parent) -> None:
+    """Create a frame containing a scatter plot"""
+    def __init__(self, parent:tk.Tk|tk.Frame) -> None:
+        """
+        :param parent: The parent of this element.
+        """
         super().__init__(parent)
 
-    def create_scatter(self, x_data:list, y_data:list) -> tuple:
+    def __create_scatter(self, x_data:list, y_data:list) -> tuple:
         """
+        Create a scatter plot.
         :param x_data:
         :param y_data:
         :return: Figure, ax, scatter plot
         """
         minmax_x_data = (min(x_data), max(x_data))
         minmax_y_data = (min(y_data), max(y_data))
-        # fig_size = (int(self.winfo_width()),int(self.winfo_height()))
         figure = Figure(figsize=(4, 6))
         figure_canvas = FigureCanvasTkAgg(figure, master=self)
         __ax = figure.add_subplot()
@@ -178,7 +287,7 @@ class ScatterChart(Visualize):
         :param x: - a list of data in the x axis.
         :param y: - a list of data in the y axis.
         """
-        self.figure, self.figure_canvas, self.__ax, self.scatter = self.create_scatter(x_data, y_data)
+        self.figure, self.figure_canvas, self.__ax, self.scatter = self.__create_scatter(x_data, y_data)
         self.start()
 
     def update(self, x_data:list, y_data:list):
@@ -191,10 +300,8 @@ class ScatterChart(Visualize):
         for i in self.winfo_children():
             i.destroy()
         # Create new scatter plot
-        self.figure, self.figure_canvas, self.__ax, self.scatter = self.create_scatter(x_data, y_data)
+        self.figure, self.figure_canvas, self.__ax, self.scatter = self.__create_scatter(x_data, y_data)
         self.start()
 
     def start(self):
         self.figure_canvas.get_tk_widget().pack()
-
-    

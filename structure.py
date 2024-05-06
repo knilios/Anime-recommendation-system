@@ -4,11 +4,20 @@ import visualize_tools as vt
 import control
 import pandas as pd
 
-class MenuFrame(tk.Tk):
+class Window(tk.Tk):
+    def init(self):
+        super().__init__()
+        self.title_font = ("consolus", 25)
+        self.normal_font = ("consolus", 16)
+    
+
+class MenuFrame(Window):
     def __init__(self) -> None:
         super().__init__()
         self.title("Main Program")
-        self.font = ("consolus", 25)
+        self.title_font = ("consolus", 25)
+        self.normal_font = ("consolus", 16)
+
 
     def init_components(self) -> None:
         self.frame = tk.Frame(self)
@@ -23,7 +32,7 @@ class MenuFrame(tk.Tk):
         self.button_scatter.pack(anchor="center", side="top")
 
     def make_label(self, name:str) -> tk.Label:
-        _label = tk.Label(self.frame, text=name, font=self.font)
+        _label = tk.Label(self.frame, text=name, font=self.title_font)
         _label.configure(justify="center")
         return _label
     
@@ -44,13 +53,16 @@ class MenuFrame(tk.Tk):
         self.mainloop()
 
 
-class ScatterWindow(tk.Tk):
+class ScatterWindow(Window):
     def __init__(self, old_window:tk.Tk) -> None:
         super().__init__()
         self.title("Main Program")
         self.old = old_window
         self.font = ("consolus", 25)
         self.backend = control.Control()
+        self.title_font = ("consolus", 25)
+        self.normal_font = ("consolus", 16)
+
 
     def init_components(self):
         self.right_frame = tk.Frame(self)
@@ -95,6 +107,57 @@ class ScatterWindow(tk.Tk):
         self.init_components()
         self.mainloop()
 
+
+class DataExploration(Window):
+    def __init__(self, old_window:tk.Tk):
+        super().__init__()
+        self.old = old_window
+        self.title_font = ("consolus", 25)
+        self.normal_font = ("consolus", 16)
+
+    def init_components(self):
+
+        # create all frames
+        self.left_frame = tk.Frame(self)
+        self.right_frame = tk.Frame(self)
+        self.upper_right_frame = tk.Frame(self.right_frame)
+        self.lower_right_frame = tk.Frame(self.right_frame)
+
+        # create a histogram
+        self.histogram = vt.Histogram(self.right_frame)
+
+        # create a filter bar
+        self.filter_screen = vt.TreeView(self.upper_right_frame, ("Type of filter", "Attribute", "Value"))
+
+
+        # packing
+        self.left_frame.pack(expand=True, side="left", fill="both")
+        self.right_frame.pack(expand=True, side="left", fill="both")
+
+
+class PreferenceShows(Window):
+    def __init__(self, old_window:tk.Tk):
+        super().__init__()
+        self.old = old_window
+
+    def init_components(self):
+
+        # create a label
+        tk.Label(self, text="Edit your preference shows", font=self.title_font)
+
+        # create frames
+        self.left_frame = tk.Frame(self)
+        self.right_frame = tk.Frame(self)
+
+        # create a search bar and chooser element
+        self.search_bar = tk.Entry(self.right_frame)
+        self.chooser = vt.TreeView(self.right_frame)
+        self.add_button = tk.Button(self.right_frame, text="Add")
+
+        # TODO
+
+    def run(self):
+        self.mainloop()
     
 
 
