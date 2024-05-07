@@ -5,6 +5,7 @@ import pandas as pd
 class Control:
     def __init__(self) -> None:
         self.__file = Reader("newer_anime.csv")
+        self.preference_list = Reader("prefered_list.csv")
 
     @property
     def data(self):

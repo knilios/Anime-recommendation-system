@@ -28,8 +28,9 @@ class MenuFrame(Window):
         self.label = self.make_label("Menu")
         self.label.pack(anchor="center")
         # menu's button
-        self.button_scatter = self.make_button(self.frame, "Data Story Telling", self.button_scatter)
-        self.button_scatter.pack(anchor="center", side="top")
+        self.button_scatter_win = self.make_button(self.frame, "Data Story Telling", self.button_scatter)
+        self.button_preference_win = self.make_button(self.frame, "Data Story Telling", self.button_scatter)
+        self.button_scatter_win.pack(anchor="center", side="top")
 
     def make_label(self, name:str) -> tk.Label:
         _label = tk.Label(self.frame, text=name, font=self.title_font)
@@ -47,6 +48,12 @@ class MenuFrame(Window):
         """Leads to the scatterplot window"""
         scatter = ScatterWindow(self)
         scatter.run()
+        
+    def button_preference(self, *args):
+        """Leads to the edit preference window
+        """
+        preference = PreferenceShows(self)
+        preference.run()
 
     def run(self) -> None:
         self.init_components()
@@ -152,11 +159,33 @@ class PreferenceShows(Window):
         # create a search bar and chooser element
         self.search_bar = tk.Entry(self.right_frame)
         self.chooser = vt.TreeView(self.right_frame)
-        self.add_button = tk.Button(self.right_frame, text="Add")
+        self.add_button = tk.Button(self.right_frame, text="Add", command=self.bind_button)
 
         # TODO
+        self.search_bar.pack(expand=True,side="top", fill="x")
+        self.chooser.pack(expand=True, side="top", fill="x")
+        self.add_button.pack(expand=True, side="top", fill="x")
+        self.add_button.configure(state="disabled")
+        
+        # Bind
+        self.chooser.bind(self.bind_chooser)
+    
+    def bind_chooser(self, event):
+        # TODO
 
+        self.add_button.configure(state="active")
+        
+        # self.selected_item = selected
+        
+    def bind_button(self, event, *args):
+        # TODO
+        # add self.selected_item to the prefered list
+        pass
+        
+    
     def run(self):
+        self.old.destroy()
+        self.init_components()
         self.mainloop()
     
 
