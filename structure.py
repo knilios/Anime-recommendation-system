@@ -2,7 +2,8 @@ import tkinter as tk
 from tkinter import ttk
 import visualize_tools as vt
 import control
-import pandas as pd
+import pandas as pd 
+from csv_reader import *
 
 class Window(tk.Tk):
     def init(self):
@@ -22,15 +23,20 @@ class MenuFrame(Window):
     def init_components(self) -> None:
         self.frame = tk.Frame(self)
         self.geometry(f'{int(self.winfo_screenwidth()*0.5)}x{int(self.winfo_screenheight()*0.5)}') 
-        self.frame.pack(fill=tk.BOTH, expand=True, anchor="center")
+        self.frame.pack(fill=tk.BOTH, expand=True, side="right")
         self.frame2 = tk.Frame(self)
+        self.frame2.pack(fill=tk.BOTH, expand=True, side="right")
         # Label
         self.label = self.make_label("Menu")
         self.label.pack(anchor="center")
         # menu's button
         self.button_scatter_win = self.make_button(self.frame, "Data Story Telling", self.button_scatter)
-        self.button_preference_win = self.make_button(self.frame, "Data Story Telling", self.button_scatter)
+        self.button_exploration_win = self.make_button(self.frame, "Get a show recommendation", self.button_exploration)
+        self.button_preference_win = self.make_button(self.frame, "Edit your preference shows", self.button_preference)
         self.button_scatter_win.pack(anchor="center", side="top")
+        self.button_preference_win.pack(anchor="center", side="top")
+        self.button_exploration_win.pack(anchor="center", side="top")
+        self.button_preference_win.pack(anchor="center", side="top")
 
     def make_label(self, name:str) -> tk.Label:
         _label = tk.Label(self.frame, text=name, font=self.title_font)
@@ -48,6 +54,11 @@ class MenuFrame(Window):
         """Leads to the scatterplot window"""
         scatter = ScatterWindow(self)
         scatter.run()
+
+    def button_exploration(self, *args):
+        """Leads to the data exploration window"""
+        exploration = DataExploration(self)
+        exploration.run()
         
     def button_preference(self, *args):
         """Leads to the edit preference window
@@ -146,6 +157,9 @@ class PreferenceShows(Window):
     def __init__(self, old_window:tk.Tk):
         super().__init__()
         self.old = old_window
+        self.prefered_list = ListDatabase("prefered_list")
+        self.title_font = ("consolus", 25)
+        self.normal_font = ("consolus", 16)
 
     def init_components(self):
 
@@ -171,18 +185,24 @@ class PreferenceShows(Window):
         self.chooser.bind(self.bind_chooser)
     
     def bind_chooser(self, event):
-        # TODO
-
+        """
+        A method for binding the chooser tree.
+        """
+        # activate the button
         self.add_button.configure(state="active")
-        
-        # self.selected_item = selected
+
+        # Put the selected item into the selected item list
+        item = self.chooser.tree.item(event.widget.selection()[0])
+        self.selected_item = item["values"][0]
         
     def bind_button(self, event, *args):
         # TODO
         # add self.selected_item to the prefered list
         pass
+        print(event.widget.selection()[0])
+        item = self.chooser.tree.item(event.widget.selection()[0])
+        print("item: ", item["values"][0])
         
-    
     def run(self):
         self.old.destroy()
         self.init_components()
