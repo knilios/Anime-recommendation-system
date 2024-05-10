@@ -114,7 +114,7 @@ class Control:
         for i in filters:
             if i[0] == "Inclusive":
                 if i[1] == "Episodes":
-                    df = df[(df[i[1]] >= i[2]) & (df[i[1]] <= i[3])]
+                    df = df[(df[i[1]] >= float(i[2])) & (df[i[1]] <= float(i[3]))]
                     continue
                 df = df[df[i[1]].str.contains(i[2])]
             else:
@@ -126,9 +126,18 @@ class Control:
         _name = df["Name"].to_list()
         return _id, _name
 
-    def get_the_show_for_each_histogram(self, bar_index:int, data:list, bins_num:int):
-        #TODO get the shows by sort(data)[num(data)*bar_index/bins_num: num(data)*bar_index+1/bins_num]
-        pass
+    def get_the_show_from_each_histogram(self, bar_index:int, data:pd.DataFrame, bins_num:int) -> pd.DataFrame:
+        """
+        Get the shows from each histogram's index.
+        :param bar_index: an index of a histogram clicked
+        :param data: the data provided to the histogram
+        :param bins_num: the number of histograms 
+        :return: A dataframe of the shows in each histogram bar
+        """
+        score_list = data["Score"].to_list()
+        lower_bound = (max(score_list) - min(score_list)) * (bar_index / bins_num) + min(score_list)
+        upper_bound = (max(score_list) - min(score_list)) * ((bar_index+1) / bins_num) + min(score_list)
+        return data[(data["Score"] >= lower_bound) & (data["Score"] <= upper_bound)]
 
     def get_show_from_part_of_name(self, text:str="") -> list:
         """

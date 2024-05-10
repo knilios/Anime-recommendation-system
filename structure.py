@@ -5,6 +5,7 @@ import control
 import pandas as pd 
 from csv_reader import *
 from tkinter import messagebox
+import re
 
 class Window(tk.Tk):
     def init(self):
@@ -14,15 +15,24 @@ class Window(tk.Tk):
     
 
 class MenuFrame(Window):
-    def __init__(self) -> None:
+    def __init__(self, old:tk.Tk | None = None) -> None:
         super().__init__()
         self.title("Main Program")
         self.title_font = ("consolus", 25)
         self.normal_font = ("consolus", 16)
         self.preference_list = ListDatabase("prefered_list")
+        self.menu = tk.Menu(self)
+        self.config(menu=self.menu)
+        self.old = old
+        # TODO bar graph
 
 
     def init_components(self) -> None:
+        # Create a menu
+        self.file_menu = tk.Menu(self.menu)
+        self.menu.add_cascade(label="File", menu=self.file_menu)
+        self.file_menu.add_command(label="exit", command=self.quit)
+
         self.frame = tk.Frame(self)
         self.geometry(f'{int(self.winfo_screenwidth()*0.5)}x{int(self.winfo_screenheight()*0.5)}') 
         self.frame.pack(fill=tk.BOTH, expand=True, side="right")
@@ -72,6 +82,8 @@ class MenuFrame(Window):
         preference.run()
 
     def run(self) -> None:
+        if not self.old is None:
+            self.old.destroy()
         self.init_components()
         self.mainloop()
 
@@ -85,9 +97,15 @@ class ScatterWindow(Window):
         self.backend = control.Control()
         self.title_font = ("consolus", 25)
         self.normal_font = ("consolus", 16)
+        self.menu = tk.Menu(self)
+        self.config(menu=self.menu)
+        
 
 
     def init_components(self):
+        # nav bar
+        self.menu.add_command(label="Back", command=self.back_handler)
+
         self.right_frame = tk.Frame(self)
         self.geometry(f'{int(self.winfo_screenwidth()*0.5)}x{int(self.winfo_screenheight()*0.5)}') 
         self.scatter = vt.ScatterChart(self)
@@ -124,6 +142,10 @@ class ScatterWindow(Window):
         key1 = des1.keys()
         key2 = des2.keys()
         return ["-----Score-----"] + [f"{i} : {des1[i]}" for i in key1] + ["-----Drop Rate-----"] + [f"{i} : {des2[i]}" for i in key2] + ["-----Correlation-----", f"Correlation : {score.corr(dropr)}"]
+    
+    def back_handler(self, *args):
+        menu_frame = MenuFrame(self)
+        menu_frame.run()
 
     def run(self):
         self.old.destroy()
@@ -134,13 +156,20 @@ class ScatterWindow(Window):
 class DataExploration(Window):
     def __init__(self, old_window:tk.Tk):
         super().__init__()
+        self.title("Data Exploration")
         self.old = old_window
         self.title_font = ("consolus", 25)
         self.normal_font = ("consolus", 16)
         self.backend = control.Control()
         self.filters_list = []
+        self.menu = tk.Menu(self)
+        self.config(menu=self.menu)
+        self.remove_item = None
 
     def init_components(self):
+
+        # nav bar
+        self.menu.add_command(label="Back", command=self.back_handler)
 
         # Create a title label
         self.label = tk.Label(self, font=self.title_font, text="Show Recommendation Page")
@@ -170,7 +199,7 @@ class DataExploration(Window):
         self.type3_option.configure(state="disabled")
         self.type4_option.configure(state="disabled")
         self.add_button = tk.Button(self.button_frame, text="Add filter", command=self.add_button_handler)
-        self.delete_button = tk.Button(self.button_frame, text="Delete", command='')
+        self.delete_button = tk.Button(self.button_frame, text="Delete", command=self.delete_button_handler)
         self.go_button = tk.Button(self.button_frame, text="Search", comman=self.search_button_handler)
 
         # packing
@@ -191,13 +220,16 @@ class DataExploration(Window):
         self.go_button.pack(expand=True, side="left")
         self.button_frame.pack(expand=True, side="top", fill="both")
         self.histogram.pack(expand=True, side="top", fill="both")
+        self.delete_button.configure(state="disabled")
 
         # histogram show
-        self.data = self.backend.get_data_for_histogram_page()["Score"].to_list()
+        self.raw_data = self.backend.get_data_for_histogram_page()
+        self.data = self.raw_data["Score"].to_list()
         self.histogram.show(self.data, 5, "The spread of the data", self.histogram.onClick(self.histogram_clicked_handler))
 
         # binding 
         self.type2_value.trace_add("write", self.type2_change_handler)
+        self.filter_screen.bind(self.filter_bar_handler)
 
     def bind_chooser(self, event):
         """
@@ -221,8 +253,11 @@ class DataExploration(Window):
     def histogram_clicked_handler(self, bar_index, *args):
         """Display the window of shows"""
         # TODO
-        # Get the index of the clicked bar
-        print(int(bar_index))
+        # Get the shows from each bar
+        each_histogram_show = self.backend.get_the_show_from_each_histogram(bar_index, self.raw_data, 5)
+        
+
+        print(each_histogram_show)
 
     def type2_change_handler(self, *args):
         self.type3_value.set("")
@@ -281,27 +316,34 @@ class DataExploration(Window):
 
     def delete_button_handler(self, *args):
         """Delete the selected item from the filter list"""
-        self.filters_list.remove(self.remove_item)
-
+        print(self.remove_item["values"][2])
+        if self.remove_item["values"][1] == "Episodes":
+            a = re.match("\d+", self.remove_item["values"][2])
+            self.remove_item["values"][2] = a[0]
+            self.remove_item["values"][2] = a[2]
+        self.filters_list.remove(self.remove_item["values"])
+        self.__update_filter_screen()
+        
     def filter_bar_handler(self, event, *args):
         """When the filter bar is selected, the delete button is enabled"""
         # activate the button
         self.delete_button.configure(state="active")
-
+        
         # Put the selected item into the selected item list
         try:
-            item = self.chooser.tree.item(event.widget.selection()[0])
+            item = self.filter_screen.tree.item(event.widget.selection()[0])
+            self.remove_item = item
         except IndexError:
             # If item unselected, disable the button
             self.delete_button.configure(state="disabled")
             return
-        self.remove_item = item
 
     def search_button_handler(self, *args):
         self.__show_histogram()
         
     def __show_histogram(self):
-        self.data = self.backend.get_data_for_histogram_page(self.filters_list)["Score"].to_list()
+        self.raw_data = self.backend.get_data_for_histogram_page(self.filters_list)
+        self.data = self.raw_data["Score"].to_list()
         self.histogram.update(5, self.data)
 
     def make_option_menu(self, parent, default_text:str, values:tuple):
@@ -313,6 +355,10 @@ class DataExploration(Window):
     def __update_filter_screen(self):
         _list = [[i[0], i[1], "between " + i[2] + "and" + i[3]] if i[3] != "" else i for i in self.filters_list]
         self.filter_screen.display(_list)
+
+    def back_handler(self, *args):
+        menu_frame = MenuFrame(self)
+        menu_frame.run()
 
     def run(self):
         self.old.destroy()
@@ -328,8 +374,13 @@ class PreferenceShows(Window):
         self.title_font = ("consolus", 25)
         self.normal_font = ("consolus", 16)
         self.backend = control.Control()
+        self.menu = tk.Menu(self)
+        self.config(menu=self.menu)
 
     def init_components(self):
+
+        # Nav bar
+        self.menu.add_command(label="Back", command=self.back_handler)
 
         # create a label
         tk.Label(self, text="Edit your preference shows", font=self.title_font).pack(side='top')
@@ -407,6 +458,10 @@ class PreferenceShows(Window):
         # Update self.shows the search bar chooser
         self.shows = self.backend.get_show_from_part_of_name(str_var.get())
         self.chooser.display(self.shows)
+
+    def back_handler(self, *args):
+        menu_frame = MenuFrame(self)
+        menu_frame.run()
         
     def run(self):
         self.old.destroy()
