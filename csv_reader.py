@@ -24,7 +24,7 @@ class ListDatabase:
             self.__data = []
             file.close()
 
-    def __reload(self):
+    def __reload(self) -> None:
         file = open(self.database_name + ".txt", "r")
         self.__data = [i.replace("\n", "") for i in file.readlines()]
         file.close()
@@ -33,15 +33,19 @@ class ListDatabase:
     def data(self):
         return self.__data
 
-    def save_data(self):
+    def save_data(self) -> None:
         file = open(self.database_name + ".txt", "w")
         for i in self.__data:
             file.write(i + "\n")
         file.close()
         self.__reload()
 
-    def delete_database(self):
+    def delete_database(self) -> None:
         os.remove(self.database_name + ".txt")
+
+    def delete(self, data:any) -> None:
+        self.data.remove(str(data))
+        self.save_data()
 
 if __name__ == "__main__":
     db = ListDatabase("TEST")

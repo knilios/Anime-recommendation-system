@@ -38,7 +38,6 @@ class Histogram(Visualize):
         """
         self.bar_clicked = bar_clicked
         self.title = title
-        self.bar_clicked
         self.ylabel = ylabel
         self.bin_num = bin_num
 
@@ -107,10 +106,10 @@ class Histogram(Visualize):
             # Get the index of the clicked bar
             if not isinstance(event.xdata, (int, float)):
                 return
-            bar_index = round(event.xdata) // round((max(self.data)-min(self.data) + 2) / self.bin_num)
+            bar_index = (event.xdata - min(self.data)) // ((max(self.data)-min(self.data)) / self.bin_num)
+            if (bar_index < 0) or (bar_index > (self.bin_num - 1)):
+                return
             callback_function(bar_index, self)
-            print(f"Bar {bar_index} clicked!")
-
         return realOnclick
                 
 
