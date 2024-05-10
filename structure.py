@@ -4,6 +4,7 @@ import visualize_tools as vt
 import control
 import pandas as pd 
 from csv_reader import *
+from tkinter import messagebox
 
 class Window(tk.Tk):
     def init(self):
@@ -18,6 +19,7 @@ class MenuFrame(Window):
         self.title("Main Program")
         self.title_font = ("consolus", 25)
         self.normal_font = ("consolus", 16)
+        self.preference_list = ListDatabase("prefered_list")
 
 
     def init_components(self) -> None:
@@ -57,6 +59,9 @@ class MenuFrame(Window):
 
     def button_exploration(self, *args):
         """Leads to the data exploration window"""
+        if self.preference_list.data == []:
+            messagebox.showwarning("Cannot open that window.", "Please add a show into the preference list.")
+            return
         exploration = DataExploration(self)
         exploration.run()
         
