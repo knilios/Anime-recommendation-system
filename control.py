@@ -53,7 +53,6 @@ class Control:
                     Example : [ ["attribute name", "filtered value"], ["attribute name 2", "filtered value 2"],]
         :return: A dataframe of result of the search
         """
-        # TODO
         _list = self.__get_filters_from_prefered_list()
         if filters == []:
             return _list
@@ -109,15 +108,19 @@ class Control:
             return self.__file.data
         
         df = data
-        if data == None:
+        if data is None:
             df = self.__file.data.copy()
         
         for i in filters:
-            if i[1] == "Episodes":
-                df = df[df[i[1]] >= i[2] & df[i[1]] <= i[3]]
-                continue
-            df = df[df[i[1]].str.contains(i[2])]
+            if i[0] == "Inclusive":
+                if i[1] == "Episodes":
+                    df = df[(df[i[1]] >= i[2]) & (df[i[1]] <= i[3])]
+                    continue
+                df = df[df[i[1]].str.contains(i[2])]
+            else:
+                df = df[df[i[1]].str.contains(i[2]) == False]
         
+        return df
         # extract id and name from the dataframe
         _id = df["MAL_ID"].to_list()
         _name = df["Name"].to_list()

@@ -169,9 +169,9 @@ class DataExploration(Window):
         self.type4_option, self.type4_value = self.make_option_menu(self.chooser_frame, "", ["1","2"])
         self.type3_option.configure(state="disabled")
         self.type4_option.configure(state="disabled")
-        self.add_button = tk.Button(self.button_frame, text="Add filter", command='')
+        self.add_button = tk.Button(self.button_frame, text="Add filter", command=self.add_button_handler)
         self.delete_button = tk.Button(self.button_frame, text="Delete", command='')
-        self.go_button = tk.Button(self.button_frame, text="Search", comman="")
+        self.go_button = tk.Button(self.button_frame, text="Search", comman=self.search_button_handler)
 
         # packing
         self.main_frame.pack(expand=True, side="top", fill="both")
@@ -188,12 +188,13 @@ class DataExploration(Window):
         self.filter_screen.start()
         self.add_button.pack(expand=True, side="left")
         self.delete_button.pack(expand=True, side="left")
+        self.go_button.pack(expand=True, side="left")
         self.button_frame.pack(expand=True, side="top", fill="both")
         self.histogram.pack(expand=True, side="top", fill="both")
 
         # histogram show
-        _data = self.backend.get_data_for_histogram_page()["Score"].to_list()
-        self.histogram.show(_data, 5, "The spread of the data", self.histogram.onClick(self.histogram_clicked_handler))
+        self.data = self.backend.get_data_for_histogram_page()["Score"].to_list()
+        self.histogram.show(self.data, 5, "The spread of the data", self.histogram.onClick(self.histogram_clicked_handler))
 
         # binding 
         self.type2_value.trace_add("write", self.type2_change_handler)
@@ -218,8 +219,10 @@ class DataExploration(Window):
                 break
 
     def histogram_clicked_handler(self, bar_index, *args):
-            # Get the index of the clicked bar
-            print(int(bar_index))
+        """Display the window of shows"""
+        # TODO
+        # Get the index of the clicked bar
+        print(int(bar_index))
 
     def type2_change_handler(self, *args):
         self.type3_value.set("")
@@ -263,24 +266,53 @@ class DataExploration(Window):
             self.type4_value.get()
         ]
         for i in self.filters_list:
-            if i[1] == "Episodes":
+            if i[1] == "Episodes" and _filters[1] == "Episodes":
+                messagebox.showerror('Error!', "Episodes filter already exists.")
                 return
-            if i == _filters:
+            if i[1::] == _filters[1::]:
+                messagebox.showerror('Error!', "No duplicated filters allowed.")
                 return
+            if _filters[0] == "Exclusive" and _filters[1] == "Episodes":
+                messagebox.showerror('Error!', "Cannot use 'Exclusive' on 'Episodes'.")
+                return 
         self.filters_list.append(_filters)
+        print(self.filters_list)
+        self.__update_filter_screen()
+
+    def delete_button_handler(self, *args):
+        """Delete the selected item from the filter list"""
+        self.filters_list.remove(self.remove_item)
+
+    def filter_bar_handler(self, event, *args):
+        """When the filter bar is selected, the delete button is enabled"""
+        # activate the button
+        self.delete_button.configure(state="active")
+
+        # Put the selected item into the selected item list
+        try:
+            item = self.chooser.tree.item(event.widget.selection()[0])
+        except IndexError:
+            # If item unselected, disable the button
+            self.delete_button.configure(state="disabled")
+            return
+        self.remove_item = item
 
     def search_button_handler(self, *args):
-        _data = self.backend.get_data_for_histogram_page(self.filters_list)
-        []
-
-    def show_histogram(self):
-        pass
+        self.__show_histogram()
+        
+    def __show_histogram(self):
+        self.data = self.backend.get_data_for_histogram_page(self.filters_list)["Score"].to_list()
+        self.histogram.update(5, self.data)
 
     def make_option_menu(self, parent, default_text:str, values:tuple):
         option_value = tk.StringVar(parent) 
         option_value.set(default_text) 
         option = tk.OptionMenu(parent, option_value, *values)
         return option, option_value
+    
+    def __update_filter_screen(self):
+        _list = [[i[0], i[1], "between " + i[2] + "and" + i[3]] if i[3] != "" else i for i in self.filters_list]
+        self.filter_screen.display(_list)
 
     def run(self):
         self.old.destroy()
@@ -380,6 +412,20 @@ class PreferenceShows(Window):
         self.old.destroy()
         self.init_components()
         self.mainloop()
+
+
+class ShowList(Window):
+    """Display a list of shows, this will be initiated and use by the DataExploration window"""
+    # TODO
+    def __init__(self, shows:pd.DataFrame):
+        pass
+
+
+class ShowWindow(Window):
+    """A window dedicated to one show"""
+    # TODO
+    def __inti__(self, show_id:float):
+        pass
     
 
 
