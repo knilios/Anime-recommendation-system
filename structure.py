@@ -5,17 +5,22 @@ import control
 import pandas as pd 
 from csv_reader import *
 from tkinter import messagebox
-import re
 
 class Window(tk.Tk):
+    """ Concreate window
+    """
     def init(self):
         super().__init__()
-        self.title_font = ("consolus", 25)
-        self.normal_font = ("consolus", 16)
     
 
 class MenuFrame(Window):
+    """The main menu"""
     def __init__(self, old:tk.Tk | None = None) -> None:
+        """Init the menu
+
+        Args:
+            old (tk.Tk | None, optional): The previous window. Defaults to None.
+        """
         super().__init__()
         self.title("Main Program")
         self.title_font = ("consolus", 25)
@@ -28,6 +33,8 @@ class MenuFrame(Window):
 
 
     def init_components(self) -> None:
+        """init the components
+        """
         # Create a menu
         self.file_menu = tk.Menu(self.menu)
         self.menu.add_cascade(label="File", menu=self.file_menu)
@@ -57,6 +64,14 @@ class MenuFrame(Window):
         self.bar_graph.pack(expand=True, fill="both", side="left")
 
     def make_label(self, name:str) -> tk.Label:
+        """create a lable
+
+        Args:
+            name (str): _description_
+
+        Returns:
+            tk.Label: _description_
+        """
         _label = tk.Label(self.frame, text=name, font=self.title_font)
         _label.configure(justify="center")
         return _label
@@ -65,6 +80,16 @@ class MenuFrame(Window):
         frame = tk.Frame(parent)
     
     def make_button(self, parent:tk.Frame | tk.Tk, name:str, command) -> tk.Frame:
+        """Create a button
+
+        Args:
+            parent (tk.Frame | tk.Tk): The parent
+            name (str): The name of the button
+            command (function): THe command of the button
+
+        Returns:
+            tk.Frame: a frame containing a button
+        """
         button = tk.Button(parent, text=name, command=command)
         return button
     
@@ -88,6 +113,7 @@ class MenuFrame(Window):
         preference.run()
 
     def run(self) -> None:
+        """Run the window"""
         if not self.old is None:
             self.old.destroy()
         self.init_components()
@@ -97,7 +123,7 @@ class MenuFrame(Window):
 class ScatterWindow(Window):
     def __init__(self, old_window:tk.Tk) -> None:
         super().__init__()
-        self.title("Main Program")
+        self.title("Data Story telling")
         self.old = old_window
         self.font = ("consolus", 25)
         self.backend = control.Control()
@@ -106,8 +132,6 @@ class ScatterWindow(Window):
         self.menu = tk.Menu(self)
         self.config(menu=self.menu)
         
-
-
     def init_components(self):
         # nav bar
         self.menu.add_command(label="Back", command=self.back_handler)
@@ -200,9 +224,8 @@ class DataExploration(Window):
         self.filter_screen = vt.TreeView(self.upper_right_frame, ("Type of filter", "Attribute", "Value"))
         self.type1_option, self.type1_value = self.make_option_menu(self.chooser_frame, "Inclusive", ["Inclusive", "Exclusive"])
         self.type2_option, self.type2_value = self.make_option_menu(self.chooser_frame, "Genres", ["Genres", "Episodes", "Type"])
-        self.type3_option, self.type3_value = self.make_option_menu(self.chooser_frame, "", ["1","2"])
+        self.type3_option, self.type3_value = self.make_option_menu(self.chooser_frame, "Action", self.backend.get_unique_genre())
         self.type4_option, self.type4_value = self.make_option_menu(self.chooser_frame, "", ["1","2"])
-        self.type3_option.configure(state="disabled")
         self.type4_option.configure(state="disabled")
         self.add_button = tk.Button(self.button_frame, text="Add filter", command=self.add_button_handler)
         self.delete_button = tk.Button(self.button_frame, text="Delete", command=self.delete_button_handler)
@@ -250,7 +273,7 @@ class DataExploration(Window):
         self.select_pie_value.trace_add("write", self.pie_chooser_handler)
         
 
-    def bind_chooser(self, event):
+    def bind_chooser(self, event:tk.Event):
         """
         A method for binding the chooser tree.
         """
@@ -269,7 +292,7 @@ class DataExploration(Window):
                 self.filters_list.remove(i)
                 break
 
-    def histogram_clicked_handler(self, bar_index, *args):
+    def histogram_clicked_handler(self, bar_index:int, *args):
         """Display the window of shows"""
         # Get the shows from each bar
         each_histogram_show = self.backend.get_the_show_from_each_histogram(bar_index, self.raw_data, 5).sort_values(by="Score", ascending=False)
@@ -344,7 +367,7 @@ class DataExploration(Window):
         self.filters_list.remove(self.remove_item["values"])
         self.__update_filter_screen()
         
-    def filter_bar_handler(self, event, *args):
+    def filter_bar_handler(self, event:tk.Event, *args):
         """When the filter bar is selected, the delete button is enabled"""
         # activate the button
         self.delete_button.configure(state="active")
@@ -375,7 +398,7 @@ class DataExploration(Window):
         pie_data = self.backend.count_unique(self.raw_data, value)
         self.pie.update(pie_data[0], pie_data[1])
 
-    def make_option_menu(self, parent, default_text:str, values:tuple):
+    def make_option_menu(self, parent:tk.Frame, default_text:str, values:tuple):
         option_value = tk.StringVar(parent) 
         option_value.set(default_text) 
         option = tk.OptionMenu(parent, option_value, *values)
@@ -398,6 +421,7 @@ class DataExploration(Window):
 class PreferenceShows(Window):
     def __init__(self, old_window:tk.Tk):
         super().__init__()
+        self.title("Edit preference show")
         self.old = old_window
         self.prefered_list = ListDatabase("prefered_list")
         self.title_font = ("consolus", 25)
@@ -452,7 +476,7 @@ class PreferenceShows(Window):
         # Bind
         self.chooser.bind(self.bind_chooser)
     
-    def bind_chooser(self, event):
+    def bind_chooser(self, event:tk.Event):
         """
         A method for binding the chooser tree.
         """
@@ -517,7 +541,7 @@ class ShowList(tk.Toplevel):
         self.treeview.pack(expand=True, side='top', fill="both")
         self.treeview.bind(self.click_event)
         
-    def click_event(self, event, **args):
+    def click_event(self, event:tk.Event, *args):
             item = self.treeview.tree.item(event.widget.selection()[0])
             ShowWindow(self, float(item["values"][0])).run()
     

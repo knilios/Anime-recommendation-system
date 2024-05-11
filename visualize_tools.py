@@ -13,9 +13,6 @@ class Visualize(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
 
-    def update(self, new_data:list) -> None:
-        pass #TODO create the update machanism
-
 
 class Histogram(Visualize):
     """Create a histogram"""
@@ -150,7 +147,7 @@ class BarGraph(Visualize):
         self.figure_canvas.draw()
         self.figure_canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
-    def update(self, data_x:list, data_y:list):
+    def update(self, data_x:list, data_y:list) -> None:
         """
         Update the data in the box plot.
         :param data_x:  a list of data in the x-axis.
