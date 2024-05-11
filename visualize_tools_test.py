@@ -29,9 +29,13 @@ if __name__ == "__main__":
         histogram.pack()
     elif _input == "2":
         test_window.title("Testing 2")
+        def handler(*args):
+            pie_test.update(['a', 'b', 'c'], [10, 10, 80])
         pie_test = PieChart(test_window)
         pie_test.display(['a', 'b', 'c'], [40, 30, 30])
+        pie_test.start()
         pie_test.pack()
+        tk.Button(test_window, text="click me", command=handler).pack()
     elif _input == "3":
         # Test treeview
         test_window.title("Testing 3")

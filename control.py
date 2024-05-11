@@ -151,6 +151,37 @@ class Control:
         _name = df["Name"].to_list()
         return [[_id[i], _name[i]] for i in range(len(_id))]
     
+    def count_unique(self, data:pd.DataFrame, attribute_name:str) -> list:
+        """Count a unique values of each dataframe's attribute.
+
+        Args:
+            data (pd.DataFrame): Provided dataframe
+            attribute_name (str): attribute name of the dataframe provided
+
+        Returns:
+            list: a list containing a lists of unique keys and number of them.
+        """
+        if attribute_name == "Type":
+            _keys = self.get_unique_type()
+        else:
+            _keys = self.get_unique_genre()
+        _count = []
+        
+        for i in _keys:
+            _count.append(data[data[attribute_name].str.contains(i)][attribute_name].count())
+        
+        real_keys = []
+        real_count = []
+        
+        for i in range(len(_keys)):
+            if _count[i] != 0:
+                real_keys.append(_keys[i])
+                real_count.append(_count[i])
+            
+            
+        
+        return [real_keys, real_count]
+    
     
     
 

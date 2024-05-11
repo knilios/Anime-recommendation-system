@@ -244,6 +244,15 @@ class PieChart(Visualize):
         ax = fig.add_subplot()
         ax.pie(values, radius=1, labels=keys, autopct="%0.2f%%")
         self.pie = FigureCanvasTkAgg(fig, self)
+        
+    def update(self, keys:list, values:list) -> None:
+        
+        # Delete everything in the frame
+        for i in self.winfo_children():
+            i.destroy()
+        
+        self.display(keys, values)
+        self.start()
 
     def start(self) -> None:
         """Make the pie chart appear on the frame."""

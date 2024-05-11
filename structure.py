@@ -31,7 +31,7 @@ class MenuFrame(Window):
         # Create a menu
         self.file_menu = tk.Menu(self.menu)
         self.menu.add_cascade(label="File", menu=self.file_menu)
-        self.file_menu.add_command(label="exit", command=self.quit)
+        self.file_menu.add_command(label="exit", command=self.destroy)
 
         self.frame = tk.Frame(self)
         self.geometry(f'{int(self.winfo_screenwidth()*0.5)}x{int(self.winfo_screenheight()*0.5)}') 
@@ -201,6 +201,10 @@ class DataExploration(Window):
         self.add_button = tk.Button(self.button_frame, text="Add filter", command=self.add_button_handler)
         self.delete_button = tk.Button(self.button_frame, text="Delete", command=self.delete_button_handler)
         self.go_button = tk.Button(self.button_frame, text="Search", comman=self.search_button_handler)
+        
+        # create a pie chart
+        self.select_pie, self.select_pie_value = self.make_option_menu(self.lower_right_frame, "Type", ("Type", "Genres"))
+        self.pie = vt.PieChart(self.lower_right_frame)
 
         # packing
         self.main_frame.pack(expand=True, side="top", fill="both")
@@ -221,15 +225,24 @@ class DataExploration(Window):
         self.button_frame.pack(expand=True, side="top", fill="both")
         self.histogram.pack(expand=True, side="top", fill="both")
         self.delete_button.configure(state="disabled")
+        self.select_pie.pack(expand=True, side="left", fill="x")
+        self.pie.pack(expand=True, side="top")
 
         # histogram show
         self.raw_data = self.backend.get_data_for_histogram_page()
         self.data = self.raw_data["Score"].to_list()
         self.histogram.show(self.data, 5, "The spread of the data", self.histogram.onClick(self.histogram_clicked_handler))
 
+        # show pie chart
+        pie_data = self.backend.count_unique(self.raw_data, "Type")
+        self.pie.display(pie_data[0], pie_data[1])
+        self.pie.start()
+        
         # binding 
         self.type2_value.trace_add("write", self.type2_change_handler)
         self.filter_screen.bind(self.filter_bar_handler)
+        self.select_pie_value.trace_add("write", self.pie_chooser_handler)
+        
 
     def bind_chooser(self, event):
         """
@@ -307,9 +320,10 @@ class DataExploration(Window):
             if i[1::] == _filters[1::]:
                 messagebox.showerror('Error!', "No duplicated filters allowed.")
                 return
-            if _filters[0] == "Exclusive" and _filters[1] == "Episodes":
-                messagebox.showerror('Error!', "Cannot use 'Exclusive' on 'Episodes'.")
-                return 
+        
+        if _filters[0] == "Exclusive" and _filters[1] == "Episodes":
+            messagebox.showerror('Error!', "Cannot use 'Exclusive' on 'Episodes'.")
+            return 
         self.filters_list.append(_filters)
         print(self.filters_list)
         self.__update_filter_screen()
@@ -318,9 +332,11 @@ class DataExploration(Window):
         """Delete the selected item from the filter list"""
         print(self.remove_item["values"][2])
         if self.remove_item["values"][1] == "Episodes":
-            a = re.match("\d+", self.remove_item["values"][2])
-            self.remove_item["values"][2] = a[0]
-            self.remove_item["values"][2] = a[2]
+            for i in self.filters_list:
+                if i[1] == "Episodes":
+                    self.filters_list.remove(i)
+                    self.__update_filter_screen()
+                    return
         self.filters_list.remove(self.remove_item["values"])
         self.__update_filter_screen()
         
@@ -345,6 +361,14 @@ class DataExploration(Window):
         self.raw_data = self.backend.get_data_for_histogram_page(self.filters_list)
         self.data = self.raw_data["Score"].to_list()
         self.histogram.update(5, self.data)
+        
+    def pie_chooser_handler(self, *args):
+        self.__update_pie()
+        
+    def __update_pie(self):
+        value = self.select_pie_value.get()
+        pie_data = self.backend.count_unique(self.raw_data, value)
+        self.pie.update(pie_data[0], pie_data[1])
 
     def make_option_menu(self, parent, default_text:str, values:tuple):
         option_value = tk.StringVar(parent) 
@@ -355,6 +379,7 @@ class DataExploration(Window):
     def __update_filter_screen(self):
         _list = [[i[0], i[1], "between " + i[2] + "and" + i[3]] if i[3] != "" else i for i in self.filters_list]
         self.filter_screen.display(_list)
+        self.__update_pie()
 
     def back_handler(self, *args):
         menu_frame = MenuFrame(self)
