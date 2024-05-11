@@ -24,7 +24,7 @@ if __name__ == "__main__":
             bar_index = round(event.xdata)
             print(f"Bar {bar_index} clicked!")
 
-        histogram = Histogram(test_window, languages, popularity, "Test", bar_clicked)
+        histogram = BarGraph(test_window, languages, popularity, "Test", bar_clicked)
         histogram.start()
         histogram.pack()
     elif _input == "2":

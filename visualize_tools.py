@@ -113,8 +113,8 @@ class Histogram(Visualize):
         return realOnclick
                 
 
-class BoxPlot(Visualize):
-    """Generate a frame containing a box plot"""
+class BarGraph(Visualize):
+    """Generate a frame containing a BarGraph"""
     def __init__(self, parent, data_x:list, data_y:list, title:str, bar_clicked, ylabel:str=None) -> None:
         """
         Intiate the box plot and the frame.

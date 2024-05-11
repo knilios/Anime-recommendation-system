@@ -49,6 +49,8 @@ class MenuFrame(Window):
         self.button_preference_win.pack(anchor="center", side="top")
         self.button_exploration_win.pack(anchor="center", side="top")
         self.button_preference_win.pack(anchor="center", side="top")
+        
+        # create a bar graph
 
     def make_label(self, name:str) -> tk.Label:
         _label = tk.Label(self.frame, text=name, font=self.title_font)
@@ -356,6 +358,7 @@ class DataExploration(Window):
 
     def search_button_handler(self, *args):
         self.__show_histogram()
+        self.__update_pie()
         
     def __show_histogram(self):
         self.raw_data = self.backend.get_data_for_histogram_page(self.filters_list)
@@ -379,7 +382,6 @@ class DataExploration(Window):
     def __update_filter_screen(self):
         _list = [[i[0], i[1], "between " + i[2] + "and" + i[3]] if i[3] != "" else i for i in self.filters_list]
         self.filter_screen.display(_list)
-        self.__update_pie()
 
     def back_handler(self, *args):
         menu_frame = MenuFrame(self)
@@ -507,8 +509,6 @@ class ShowWindow(Window):
     def __inti__(self, show_id:float):
         pass
     
-
-
 if __name__ == "__main__":
     test = MenuFrame()
     test.run()

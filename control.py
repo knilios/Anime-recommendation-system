@@ -161,6 +161,7 @@ class Control:
         Returns:
             list: a list containing a lists of unique keys and number of them.
         """
+        TOP = 9
         if attribute_name == "Type":
             _keys = self.get_unique_type()
         else:
@@ -177,7 +178,25 @@ class Control:
             if _count[i] != 0:
                 real_keys.append(_keys[i])
                 real_count.append(_count[i])
-            
+                
+        df = pd.DataFrame(data = {"keys": real_keys, "count": real_count})
+        
+        df = df.sort_values(by="count", ascending=False)
+        
+        real_keys = df['keys'].to_list()[:TOP:] + ["Others"]
+        real_count = df['count'].to_list()[:TOP:] + [sum(df["count"].to_list()[TOP::])]
+        if real_count[-1] == 0:
+            real_keys.pop()
+            real_count.pop()
+        # sum_count = df["count"].sum()        
+        # df1 = df[(df['count'] * 100 / sum_count) < 2]
+        # df2 = df[(df["count"] / sum_count *100) >= 2]
+        
+        # _sum_df1 = df1["count"].sum()
+        
+        # real_keys = df2["keys"].to_list() + ["Other"]
+        # real_count = df2["count"].to_list() + [_sum_df1]
+        
             
         
         return [real_keys, real_count]
