@@ -35,5 +35,7 @@ Proposal - https://docs.google.com/document/d/1Qi0fGU4koof8QgauWVlN8KqHx2hm2YZaU
 
 data source: https://www.kaggle.com/datasets/hernan4444/anime-recommendation-database-2020
 
+Youtube video - https://www.youtube.com/watch?v=Z3fNp_n032c
+
 ## Requirements
 python version 3.11 or greater
