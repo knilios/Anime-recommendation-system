@@ -24,7 +24,7 @@ class MenuFrame(Window):
         self.menu = tk.Menu(self)
         self.config(menu=self.menu)
         self.old = old
-        # TODO bar graph
+        self.backend = control.Control()
 
 
     def init_components(self) -> None:
@@ -51,6 +51,10 @@ class MenuFrame(Window):
         self.button_preference_win.pack(anchor="center", side="top")
         
         # create a bar graph
+        self.bar_data = self.backend.count_unique(self.backend.data, "Genres")
+        self.bar_graph = vt.BarGraph(self.frame2, self.bar_data[0], self.bar_data[1], "Count of each genre", lambda x: x)
+        self.bar_graph.start()
+        self.bar_graph.pack(expand=True, fill="both", side="left")
 
     def make_label(self, name:str) -> tk.Label:
         _label = tk.Label(self.frame, text=name, font=self.title_font)
@@ -267,12 +271,10 @@ class DataExploration(Window):
 
     def histogram_clicked_handler(self, bar_index, *args):
         """Display the window of shows"""
-        # TODO
         # Get the shows from each bar
-        each_histogram_show = self.backend.get_the_show_from_each_histogram(bar_index, self.raw_data, 5)
-        
-
-        print(each_histogram_show)
+        each_histogram_show = self.backend.get_the_show_from_each_histogram(bar_index, self.raw_data, 5).sort_values(by="Score", ascending=False)
+        showlist = ShowList(self, each_histogram_show)
+        showlist.run()
 
     def type2_change_handler(self, *args):
         self.type3_value.set("")
@@ -435,7 +437,7 @@ class PreferenceShows(Window):
         self.list_view.display(["The shows will be listed bellow.", "-----------------------"] + show_name_list)
 
         
-        self.add_button = tk.Button(self.right_frame, text="Add", command=self.bind_button)
+        self.add_button = tk.Button(self.right_frame, text="Add / Delete", command=self.bind_button)
 
         self.search_bar.pack(expand=True,side="top", fill="x")
         self.chooser.pack(expand=True, side="top", fill="both")
@@ -496,18 +498,62 @@ class PreferenceShows(Window):
         self.mainloop()
 
 
-class ShowList(Window):
+class ShowList(tk.Toplevel):
     """Display a list of shows, this will be initiated and use by the DataExploration window"""
-    # TODO
-    def __init__(self, shows:pd.DataFrame):
-        pass
+    def __init__(self, master:tk.Tk, shows:pd.DataFrame):
+        super().__init__(master)
+        self.shows = shows
+        self.title("Histogram's data")
+        self.geometry(f'{int(self.winfo_screenwidth()*0.25)}x{int(self.winfo_screenheight()*0.5)}')
+        self.init_components()
+    
+    def init_components(self):
+        self.treeview = vt.TreeView(self, ("id", "name"))
+        names = self.shows["Name"].to_list()
+        ids = self.shows["MAL_ID"].to_list()
+        data = [[ids[i], names[i]] for i in range(len(names))]
+        self.treeview.display(data)
+        self.treeview.start()
+        self.treeview.pack(expand=True, side='top', fill="both")
+        self.treeview.bind(self.click_event)
+        
+    def click_event(self, event, **args):
+            item = self.treeview.tree.item(event.widget.selection()[0])
+            ShowWindow(self, float(item["values"][0])).run()
+    
+    def run(self):
+        self.mainloop()
 
 
-class ShowWindow(Window):
+class ShowWindow(tk.Toplevel):
     """A window dedicated to one show"""
-    # TODO
-    def __inti__(self, show_id:float):
-        pass
+    def __init__(self, master:tk.Tk | tk.Toplevel, show_id:float):
+        super().__init__(master)
+        self.title_font = ("consolus", 25)
+        self.normal_font = ("consolus", 16)
+        self.backend = control.Control()
+        self.show = self.backend.get_show_by_id(show_id)
+        self.title(self.show["Name"].to_list()[0])
+        self.init_components()
+        
+    def init_components(self):
+        tk.Label(self, text=self.show["Name"].to_list()[0], font=self.title_font).pack(anchor="center", side="top")
+        view = vt.EntryTextView(self)
+        text = [
+            "Genre: " + self.show["Genres"].to_list()[0],
+            "Origin: " + self.show["Genres"].to_list()[0],
+            "Number of Episodes: " + str(self.show["Episodes"].to_list()[0]),
+            "Rating: " + self.show["Rating"].to_list()[0],
+            "Duration: " + self.show["Duration"].to_list()[0],
+            "Type: " + self.show["Type"].to_list()[0],
+            "Score: " + str(self.show["Score"].to_list()[0]),
+            "Sypnopsis: " + self.show["sypnopsis"].to_list()[0],
+        ]
+        view.display(text)
+        view.pack(fill="both", expand="True", side="top")
+    
+    def run(self):
+        self.mainloop()
     
 if __name__ == "__main__":
     test = MenuFrame()
