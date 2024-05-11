@@ -1,13 +1,12 @@
+from tkinter.scrolledtext import ScrolledText
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
+from math import ceil
 import tkinter as tk
 from tkinter import ttk
 import matplotlib
 matplotlib.use('TkAgg')
-from math import ceil
 
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
-from tkinter.scrolledtext import ScrolledText
 
 class Visualize(tk.Frame):
     def __init__(self, parent):
@@ -16,6 +15,7 @@ class Visualize(tk.Frame):
 
 class Histogram(Visualize):
     """Create a histogram"""
+
     def __init__(self, parent) -> None:
         """
         Initiate a histogram.
@@ -24,7 +24,7 @@ class Histogram(Visualize):
         super().__init__(parent)
         self.parent = parent
 
-    def show(self, data:list, bin_num:int, title:str, bar_clicked, ylabel:str=None) -> None:
+    def show(self, data: list, bin_num: int, title: str, bar_clicked, ylabel: str = None) -> None:
         """
         Create a histogram for the first time.
         :param data: A list of data to put in the histogram.
@@ -40,8 +40,8 @@ class Histogram(Visualize):
 
         # create a histogram
         self.__create_hist(data, bin_num)
-        
-    def update(self, bin_num:int, data:list=None):
+
+    def update(self, bin_num: int, data: list = None):
         """
         Update the already existed histogram.
         :param bin_num: The number of the bins in the histogram.
@@ -51,7 +51,7 @@ class Histogram(Visualize):
         data_in_use = data
         if data_in_use == None:
             data_in_use = self.data
-        
+
         # delete everything in the frame
         for i in self.winfo_children():
             i.destroy()
@@ -59,7 +59,7 @@ class Histogram(Visualize):
         # create a new histogram
         self.__create_hist(data_in_use, bin_num)
 
-    def __create_hist(self, data:list, bin_num:int):
+    def __create_hist(self, data: list, bin_num: int):
         """
         Create a histogram.
         :param data: A list containing all data to be displayed in the histogram.
@@ -68,7 +68,7 @@ class Histogram(Visualize):
         self.bin_num = bin_num
         self.data = data
 
-        #create a figure
+        # create a figure
         self.figure = Figure(figsize=(6, 4), dpi=100)
         self.figure_canvas = FigureCanvasTkAgg(self.figure, master=self)
 
@@ -84,7 +84,7 @@ class Histogram(Visualize):
         # show the histogram
         self.figure_canvas.mpl_connect('button_press_event', self.bar_clicked)
         self.figure_canvas.draw()
-        self.figure_canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1) 
+        self.figure_canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
     def onClick(self, callback_function):
         """
@@ -103,16 +103,18 @@ class Histogram(Visualize):
             # Get the index of the clicked bar
             if not isinstance(event.xdata, (int, float)):
                 return
-            bar_index = (event.xdata - min(self.data)) // ((max(self.data)-min(self.data)) / self.bin_num)
+            bar_index = (event.xdata - min(self.data)
+                         ) // ((max(self.data)-min(self.data)) / self.bin_num)
             if (bar_index < 0) or (bar_index > (self.bin_num - 1)):
                 return
             callback_function(bar_index, self)
         return realOnclick
-                
+
 
 class BarGraph(Visualize):
     """Generate a frame containing a BarGraph"""
-    def __init__(self, parent, data_x:list, data_y:list, title:str, bar_clicked, ylabel:str=None) -> None:
+
+    def __init__(self, parent, data_x: list, data_y: list, title: str, bar_clicked, ylabel: str = None) -> None:
         """
         Intiate the box plot and the frame.
         :param parent: The parent of this box plot frame.
@@ -126,7 +128,7 @@ class BarGraph(Visualize):
         self.bar_clicked = bar_clicked
         self.parent = parent
 
-        #create a figure
+        # create a figure
         self.figure = Figure(figsize=(6, 4), dpi=100)
         self.figure_canvas = FigureCanvasTkAgg(self.figure, master=self)
 
@@ -147,7 +149,7 @@ class BarGraph(Visualize):
         self.figure_canvas.draw()
         self.figure_canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
-    def update(self, data_x:list, data_y:list) -> None:
+    def update(self, data_x: list, data_y: list) -> None:
         """
         Update the data in the box plot.
         :param data_x:  a list of data in the x-axis.
@@ -162,7 +164,8 @@ class TreeView(Visualize):
     """
     Create a clickable and scrollable treeview.
     """
-    def __init__(self, parent:tk.Tk|tk.Frame, columns:tuple):
+
+    def __init__(self, parent: tk.Tk | tk.Frame, columns: tuple):
         """
         :param parent: The parent of this element.
         :param columns: The tuple of each column name.
@@ -173,14 +176,15 @@ class TreeView(Visualize):
         for i in columns:
             self.tree.heading(i, text=str(i))
         # Create a scrollbar for the tree
-        self.scrollbar = tk.Scrollbar(self.tree, orient="vertical", command=self.tree.yview)
-        
+        self.scrollbar = tk.Scrollbar(
+            self.tree, orient="vertical", command=self.tree.yview)
+
     def start(self) -> None:
         """Make the tree visible (but not the frame that's containing it)"""
         self.scrollbar.pack(side="right", fill="y")
         self.tree.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
 
-    def display(self, content:list) -> None:
+    def display(self, content: list) -> None:
         """Display specified list of contents.
         :param content: - a list of list containing a lines of data.
         """
@@ -199,16 +203,18 @@ class TreeView(Visualize):
         """
         self.tree.bind('<<TreeviewSelect>>', func)
 
+
 class EntryTextView(Visualize):
     """A textview that can only display texts"""
-    def __init__(self, parent:tk.Tk|tk.Frame):
+
+    def __init__(self, parent: tk.Tk | tk.Frame):
         """
         :param parent: The parent of this element.
         """
         super().__init__(parent)
         self.parent = parent
         self.entry = ScrolledText(self)
-    
+
     def display(self, text: list, color: str = "black"):
         '''
         Display the text on to the entry.
@@ -223,15 +229,16 @@ class EntryTextView(Visualize):
         self.entry.configure(fg=color)
         self.entry.configure(state="disabled")
         self.entry.pack(fill="both", expand=True, side=tk.LEFT)
-        
+
+
 class PieChart(Visualize):
-    def __init__(self, parent:tk.Tk|tk.Frame):
+    def __init__(self, parent: tk.Tk | tk.Frame):
         """
         :param parent: The parent of this element.
         """
         super().__init__(parent)
-    
-    def display(self, keys:list, values:list) -> None:
+
+    def display(self, keys: list, values: list) -> None:
         """
         Display the pie graph from the parameters.
         :param keys: - a list containing the keys of each values.
@@ -241,13 +248,13 @@ class PieChart(Visualize):
         ax = fig.add_subplot()
         ax.pie(values, radius=1, labels=keys, autopct="%0.2f%%")
         self.pie = FigureCanvasTkAgg(fig, self)
-        
-    def update(self, keys:list, values:list) -> None:
-        
+
+    def update(self, keys: list, values: list) -> None:
+
         # Delete everything in the frame
         for i in self.winfo_children():
             i.destroy()
-        
+
         self.display(keys, values)
         self.start()
 
@@ -258,13 +265,14 @@ class PieChart(Visualize):
 
 class ScatterChart(Visualize):
     """Create a frame containing a scatter plot"""
-    def __init__(self, parent:tk.Tk|tk.Frame) -> None:
+
+    def __init__(self, parent: tk.Tk | tk.Frame) -> None:
         """
         :param parent: The parent of this element.
         """
         super().__init__(parent)
 
-    def __create_scatter(self, x_data:list, y_data:list) -> tuple:
+    def __create_scatter(self, x_data: list, y_data: list) -> tuple:
         """
         Create a scatter plot.
         :param x_data:
@@ -280,22 +288,25 @@ class ScatterChart(Visualize):
         _step_y = round((minmax_y_data[1] - minmax_y_data[0]) / 10)
         if _step_x <= 0:
             _step_x = 1
-        __ax.set_xticks(range(int(minmax_x_data[0]), ceil(minmax_x_data[1]) + _step_x, _step_x))
-        __ax.set_yticks(range(int(minmax_y_data[0]), ceil(minmax_y_data[1]) + _step_y, _step_y))
+        __ax.set_xticks(range(int(minmax_x_data[0]), ceil(
+            minmax_x_data[1]) + _step_x, _step_x))
+        __ax.set_yticks(range(int(minmax_y_data[0]), ceil(
+            minmax_y_data[1]) + _step_y, _step_y))
         s = [0.5 for i in range(len(x_data))]
         scatter = __ax.scatter(x_data, y_data, s=s)
         return figure, figure_canvas, __ax, scatter
-        
-    def display(self, x_data:list, y_data:list) -> None:
+
+    def display(self, x_data: list, y_data: list) -> None:
         """
         Display the heatmap from the spicified array.
         :param x: - a list of data in the x axis.
         :param y: - a list of data in the y axis.
         """
-        self.figure, self.figure_canvas, self.__ax, self.scatter = self.__create_scatter(x_data, y_data)
+        self.figure, self.figure_canvas, self.__ax, self.scatter = self.__create_scatter(
+            x_data, y_data)
         self.start()
 
-    def update(self, x_data:list, y_data:list):
+    def update(self, x_data: list, y_data: list):
         """
         Update the heatmap from the spicified array.
         :param x: - a list of data in the x axis.
@@ -305,7 +316,8 @@ class ScatterChart(Visualize):
         for i in self.winfo_children():
             i.destroy()
         # Create new scatter plot
-        self.figure, self.figure_canvas, self.__ax, self.scatter = self.__create_scatter(x_data, y_data)
+        self.figure, self.figure_canvas, self.__ax, self.scatter = self.__create_scatter(
+            x_data, y_data)
         self.start()
 
     def start(self):
